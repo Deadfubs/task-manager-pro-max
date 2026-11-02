@@ -1,7 +1,9 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import { TRPCReactProvider } from "@/trpc/client";
+import { ThemeProvider } from "./theme-provider";
 
 import "./globals.css";
 
@@ -26,12 +28,15 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <TRPCReactProvider>
-          {children}
-        </TRPCReactProvider>
+      <body className="flex min-h-full flex-col">
+        <ThemeProvider>
+          <TRPCReactProvider>
+            {children}
+          </TRPCReactProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
