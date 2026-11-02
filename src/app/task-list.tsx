@@ -15,9 +15,7 @@ export function TaskList() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const [editingTaskId, setEditingTaskId] = useState<number | null>(
-    null,
-  );
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
 
   const {
@@ -53,103 +51,113 @@ export function TaskList() {
   }
 
   if (isLoading) {
-    return <p>Carregando tarefas...</p>;
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-6 text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+        Carregando tarefas...
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <p className="text-red-600">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
         Erro ao carregar tarefas: {error.message}
-      </p>
-    );
-  }
-
-  if (!tasks || tasks.length === 0) {
-    return (
-      <section className="space-y-3">
-        {feedback && (
-          <p role="status" className="text-sm text-green-600">
-            {feedback}
-          </p>
-        )}
-
-        <p>Nenhuma tarefa cadastrada.</p>
-      </section>
+      </div>
     );
   }
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-semibold">
-        Minhas tarefas ({tasks.length})
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">
+          Minhas tarefas
+        </h2>
+
+        <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+          {tasks?.length ?? 0} tarefas
+        </span>
+      </div>
 
       {feedback && (
         <p
           role="status"
-          className={`text-sm ${
+          className={`rounded-lg p-3 text-sm ${
             feedback.startsWith("Erro")
-              ? "text-red-600"
-              : "text-green-600"
+              ? "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+              : "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
           }`}
         >
           {feedback}
         </p>
       )}
 
-      <ul className="space-y-3">
-        {tasks.map((task) => (
-          <li
-            key={task.id}
-            className="rounded-lg border p-4"
-          >
-            {editingTaskId === task.id ? (
-              <TaskEditForm
-                task={task}
-                onCancel={() => setEditingTaskId(null)}
-              />
-            ) : (
-              <>
-                <h3 className="font-semibold">
-                  {task.titulo}
-                </h3>
+      {!tasks || tasks.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center dark:border-gray-700 dark:bg-gray-900">
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">
+            Nenhuma tarefa cadastrada
+          </h3>
 
-                {task.descricao && (
-                  <p className="mt-1 text-gray-600">
-                    {task.descricao}
-                  </p>
-                )}
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Utilize o formulário acima para criar sua primeira tarefa.
+          </p>
+        </div>
+      ) : (
+        <ul className="space-y-3">
+          {tasks.map((task) => (
+            <li
+              key={task.id}
+              className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-colors dark:border-gray-800 dark:bg-gray-900"
+            >
+              {editingTaskId === task.id ? (
+                <TaskEditForm
+                  task={task}
+                  onCancel={() => setEditingTaskId(null)}
+                />
+              ) : (
+                <>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                      {task.titulo}
+                    </h3>
 
-                <small className="mt-2 block text-gray-500">
-                  Criada em:{" "}
-                  {new Date(task.dataCriacao).toLocaleString("pt-BR")}
-                </small>
+                    {task.descricao && (
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                        {task.descricao}
+                      </p>
+                    )}
 
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditingTaskId(task.id)}
-                    className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
-                  >
-                    Editar
-                  </button>
+                    <p className="mt-3 text-xs text-gray-500 dark:text-gray-500">
+                      Criada em:{" "}
+                      {new Date(task.dataCriacao).toLocaleString("pt-BR")}
+                    </p>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(task.id)}
-                    disabled={deleteTask.isPending}
-                    className="rounded-md bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
-                  >
-                    {deleteTask.isPending
-                      ? "Excluindo..."
-                      : "Excluir"}
-                  </button>
-                </div>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+                  <div className="mt-4 flex gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
+                    <button
+                      type="button"
+                      onClick={() => setEditingTaskId(task.id)}
+                      className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(task.id)}
+                      disabled={deleteTask.isPending}
+                      className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {deleteTask.isPending
+                        ? "Excluindo..."
+                        : "Excluir"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
