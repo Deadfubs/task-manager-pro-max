@@ -10,6 +10,7 @@ import {
 
 import { useTRPC } from "@/trpc/client";
 import { TaskEditForm } from "./task-edit-form";
+import { ConfirmDialog } from "./confirm-dialog";
 
 export function TaskList() {
   const trpc = useTRPC();
@@ -39,16 +40,21 @@ export function TaskList() {
     }),
   );
 
-  function handleDelete(id: number) {
-    const confirmed = window.confirm(
-      "Tem certeza de que deseja excluir esta tarefa?",
-    );
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
-    if (!confirmed) return;
+  function handleDelete() {
+  if (taskToDelete === null) return;
 
-    setFeedback("");
-    deleteTask.mutate({ id });
-  }
+  setFeedback("");
+  deleteTask.mutate(
+    { id: taskToDelete },
+    {
+      onSuccess: () => {
+        setTaskToDelete(null);
+      },
+    },
+  );
+}
 
   if (isLoading) {
     return (
