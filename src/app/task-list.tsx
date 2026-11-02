@@ -43,18 +43,18 @@ export function TaskList() {
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
   function handleDelete() {
-  if (taskToDelete === null) return;
+    if (taskToDelete === null) return;
 
-  setFeedback("");
-  deleteTask.mutate(
-    { id: taskToDelete },
-    {
-      onSuccess: () => {
-        setTaskToDelete(null);
+    setFeedback("");
+    deleteTask.mutate(
+      { id: taskToDelete },
+      {
+        onSuccess: () => {
+          setTaskToDelete(null);
+        },
       },
-    },
-  );
-}
+    );
+  }
 
   if (isLoading) {
     return (
@@ -87,11 +87,10 @@ export function TaskList() {
       {feedback && (
         <p
           role="status"
-          className={`rounded-lg p-3 text-sm ${
-            feedback.startsWith("Erro")
+          className={`rounded-lg p-3 text-sm ${feedback.startsWith("Erro")
               ? "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
               : "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-          }`}
+            }`}
         >
           {feedback}
         </p>
@@ -149,7 +148,7 @@ export function TaskList() {
 
                     <button
                       type="button"
-                      onClick={() => handleDelete(task.id)}
+                      onClick={() => setTaskToDelete(task.id)}
                       disabled={deleteTask.isPending}
                       className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -163,6 +162,16 @@ export function TaskList() {
             </li>
           ))}
         </ul>
+      )}
+      {taskToDelete !== null && (
+        <ConfirmDialog
+          title="Excluir tarefa?"
+          description="Essa ação é permanente e não poderá ser desfeita. Tem certeza de que deseja excluir esta tarefa?"
+          confirmLabel="Sim, excluir"
+          isLoading={deleteTask.isPending}
+          onConfirm={handleDelete}
+          onCancel={() => setTaskToDelete(null)}
+        />
       )}
     </section>
   );
