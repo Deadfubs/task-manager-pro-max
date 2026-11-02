@@ -1,36 +1,154 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Task Manager
 
-## Getting Started
+Aplicação web para gerenciamento de tarefas, desenvolvida com Next.js, TypeScript, tRPC e Prisma. O projeto permite criar, visualizar, editar e excluir tarefas, com validação de dados e feedback visual das operações.
 
-First, run the development server:
+## Tecnologias utilizadas
+
+- **Next.js 16** — Framework React com App Router.
+- **React** — Construção da interface.
+- **TypeScript** — Tipagem estática.
+- **tRPC** — Comunicação tipada entre frontend e backend.
+- **TanStack React Query** — Gerenciamento de requisições, cache e atualização dos dados.
+- **Prisma ORM** — Modelagem e acesso ao banco de dados.
+- **SQLite** — Banco de dados relacional.
+- **Zod** — Validação dos dados de entrada.
+- **Tailwind CSS** — Estilização da interface.
+- **next-themes** — Gerenciamento dos temas claro, escuro e sistema.
+
+## Funcionalidades
+
+- Criar novas tarefas com título e descrição opcional.
+- Listar tarefas cadastradas.
+- Editar tarefas existentes.
+- Excluir tarefas com confirmação.
+- Validar campos obrigatórios e limites de caracteres.
+- Exibir notificações de sucesso e erro.
+- Apresentar estados de carregamento durante as operações.
+- Atualizar automaticamente a lista após alterações.
+- Carregar inicialmente as tarefas utilizando Server-Side Rendering (SSR) e hidratação.
+- Alternar entre os temas claro, escuro e automático (sistema).
+
+## Pré-requisitos
+
+Antes de executar o projeto, é necessário ter instalado:
+
+- [Node.js](https://nodejs.org/)
+- npm (instalado junto com o Node.js)
+
+## Instalação
+
+Clone o repositório:
+
+```bash
+git clone https://github.com/Deadfubs/task-manager-pro-max.git
+```
+
+Acesse a pasta do projeto:
+
+```bash
+cd task-manager-pro-max
+```
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+## Configuração do banco de dados
+
+O projeto utiliza SQLite com Prisma ORM.
+
+Crie um arquivo `.env` na raiz do projeto com a seguinte variável:
+
+```env
+DATABASE_URL="file:./dev.db"
+```
+
+Execute as migrações para criar o banco de dados:
+
+```bash
+npx prisma migrate dev
+```
+
+Gere o Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+O arquivo `dev.db` será utilizado como banco de dados local.
+
+## Executando a aplicação
+
+Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse a aplicação pelo navegador:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+[http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Verificação do código
 
-## Learn More
+Para verificar possíveis erros de TypeScript:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npx tsc --noEmit
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Para executar a análise estática com ESLint:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run lint
+```
 
-## Deploy on Vercel
+## Estrutura do projeto
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```text
+task-manager-pro-max/
+├── prisma/
+│   ├── migrations/
+│   └── schema.prisma
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── trpc/
+│   │   │       └── [trpc]/
+│   │   │           └── route.ts
+│   │   ├── confirm-dialog.tsx
+│   │   ├── task-edit-form.tsx
+│   │   ├── task-form.tsx
+│   │   ├── task-list.tsx
+│   │   ├── theme-provider.tsx
+│   │   ├── theme-toggle.tsx
+│   │   ├── toast.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── generated/
+│   │   └── prisma/
+│   ├── server/
+│   │   ├── api/
+│   │   │   ├── routers/
+│   │   │   │   └── task.ts
+│   │   │   ├── root.ts
+│   │   │   └── trpc.ts
+│   │   └── db.ts
+│   └── trpc/
+│       ├── client.tsx
+│       ├── query-client.ts
+│       └── server.tsx
+├── .env
+├── prisma7.config.ts
+├── package.json
+└── README.md
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Modelo de dados
+
+Cada tarefa possui os seguintes campos:
+
+| Campo
