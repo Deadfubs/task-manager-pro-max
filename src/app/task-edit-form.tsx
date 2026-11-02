@@ -9,6 +9,9 @@ import {
 
 import { useTRPC } from "@/trpc/client";
 
+const TITLE_MAX_LENGTH = 120;
+const DESCRIPTION_MAX_LENGTH = 1000;
+
 type TaskEditFormProps = {
   task: {
     id: number;
@@ -16,11 +19,16 @@ type TaskEditFormProps = {
     descricao: string | null;
   };
   onCancel: () => void;
+  onNotify: (
+    message: string,
+    type: "success" | "error",
+  ) => void;
 };
 
 export function TaskEditForm({
   task,
   onCancel,
+  onNotify,
 }: TaskEditFormProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -29,7 +37,7 @@ export function TaskEditForm({
   const [descricao, setDescricao] = useState(
     task.descricao ?? "",
   );
-  const [errorMessage, setErrorMessage] = useState("");
+  const [titleError, setTitleError] = useState("");
 
   const updateTask = useMutation(
     trpc.task.update.mutationOptions({
@@ -38,10 +46,18 @@ export function TaskEditForm({
           trpc.task.list.queryFilter(),
         );
 
+        onNotify(
+          "Tarefa atualizada com sucesso!",
+          "success",
+        );
+
         onCancel();
       },
       onError: (error) => {
-        setErrorMessage(error.message);
+        onNotify(
+          `Erro ao atualizar tarefa: ${error.message}`,
+          "error",
+        );
       },
     }),
   );
@@ -49,60 +65,124 @@ export function TaskEditForm({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!titulo.trim()) {
-      setErrorMessage("O título é obrigatório.");
+    const trimmedTitle = titulo.trim();
+
+    if (!trimmedTitle) {
+      setTitleError("O título é obrigatório.");
+      onNotify(
+        "Informe um título válido para a tarefa.",
+        "error",
+      );
       return;
     }
 
-    setErrorMessage("");
+    setTitleError("");
 
     updateTask.mutate({
       id: task.id,
-      titulo: titulo.trim(),
+      titulo: trimmedTitle,
       descricao: descricao.trim(),
     });
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 space-y-3">
-      <input
-        type="text"
-        value={titulo}
-        onChange={(event) => setTitulo(event.target.value)}
-        placeholder="Título"
-        className="w-full rounded-md border p-2"
-        required
-      />
+    <form
+      onSubmit={handleSubmit}
+      className="mt-3 space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50"
+    >
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor={`titulo-${task.id}`}
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Título *
+          </label>
 
-      <textarea
-        value={descricao}
-        onChange={(event) => setDescricao(event.target.value)}
-        placeholder="Descrição"
-        rows={3}
-        className="w-full rounded-md border p-2"
-      />
+          <span className="text-xs text-gray-400">
+            {titulo.length}/{TITLE_MAX_LENGTH}
+          </span>
+        </div>
 
-      {errorMessage && (
-        <p role="alert" className="text-sm text-red-600">
-          {errorMessage}
-        </p>
-      )}
+        <input
+          id={`titulo-${task.id}`}
+          type="text"
+          value={titulo}
+          onChange={(event) => {
+            setTitulo(event.target.value);
 
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={updateTask.isPending}
-          className="rounded-md bg-blue-600 px-3 py-2 text-white disabled:opacity-50"
-        >
-          {updateTask.isPending ? "Salvando..." : "Salvar"}
-        </button>
+            if (event.target.value.trim()) {
+              setTitleError("");
+            }
+          }}
+          placeholder="Título"
+          maxLength={TITLE_MAX_LENGTH}
+          required
+          aria-invalid={!!titleError}
+          aria-describedby={
+            titleError ? `titulo-error-${task.id}` : undefined
+          }
+          className={`w-full rounded-lg border bg-white px-3 py-2 text-gray-900 outline-none transition placeholder:text-gray-400 focus:ring-2 dark:bg-gray-900 dark:text-gray-100 ${
+            titleError
+              ? "border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500"
+              : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:border-gray-700"
+          }`}
+        />
 
+        {titleError && (
+          <p
+            id={`titulo-error-${task.id}`}
+            role="alert"
+            className="text-sm text-red-600 dark:text-red-400"
+          >
+            {titleError}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor={`descricao-${task.id}`}
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Descrição
+          </label>
+
+          <span className="text-xs text-gray-400">
+            {descricao.length}/{DESCRIPTION_MAX_LENGTH}
+          </span>
+        </div>
+
+        <textarea
+          id={`descricao-${task.id}`}
+          value={descricao}
+          onChange={(event) => setDescricao(event.target.value)}
+          placeholder="Descrição"
+          rows={3}
+          maxLength={DESCRIPTION_MAX_LENGTH}
+          className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        />
+      </div>
+
+      <div className="flex justify-end gap-2">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border px-3 py-2"
+          disabled={updateTask.isPending}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
         >
           Cancelar
+        </button>
+
+        <button
+          type="submit"
+          disabled={updateTask.isPending}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {updateTask.isPending
+            ? "Salvando..."
+            : "Salvar alterações"}
         </button>
       </div>
     </form>

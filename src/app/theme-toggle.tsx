@@ -1,28 +1,38 @@
 
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
+
+const subscribe = () => () => {};
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
+  // Evita hydration mismatch sem precisar de useEffect + setState.
+  const mounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
+
   const options = [
-    {
-      value: "light",
-      label: "Claro",
-      icon: "☀",
-    },
-    {
-      value: "dark",
-      label: "Escuro",
-      icon: "☾",
-    },
-    {
-      value: "system",
-      label: "Sistema",
-      icon: "💻",
-    },
+    { value: "light", label: "Claro", icon: "☀" },
+    { value: "dark", label: "Escuro", icon: "☾" },
+    { value: "system", label: "Sistema", icon: "💻" },
   ] as const;
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          ◐ Tema
+        </span>
+
+        <div className="h-10 w-36 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-3">
@@ -55,6 +65,7 @@ export function ThemeToggle() {
               <span aria-hidden="true" className="text-base">
                 {option.icon}
               </span>
+
               <span className="ml-2 hidden sm:inline">
                 {option.label}
               </span>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useMutation,
   useQuery,
@@ -11,13 +11,13 @@ import {
 import { useTRPC } from "@/trpc/client";
 import { TaskEditForm } from "./task-edit-form";
 import { ConfirmDialog } from "./confirm-dialog";
+import { Toast } from "./toast";
 
 export function TaskList() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState("");
 
   const {
     data: tasks,
@@ -25,35 +25,51 @@ export function TaskList() {
     error,
   } = useQuery(trpc.task.list.queryOptions());
 
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
+
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  // Controla o fechamento automático das notificações.
+  useEffect(() => {
+    if (!toast) return;
+
+    const timeout = setTimeout(() => {
+      setToast(null);
+    }, 4000);
+
+    return () => clearTimeout(timeout);
+  }, [toast]);
+
   const deleteTask = useMutation(
     trpc.task.delete.mutationOptions({
       onSuccess: async () => {
-        setFeedback("Tarefa excluída com sucesso!");
+        setToast({
+          message: "Tarefa excluída com sucesso!",
+          type: "success",
+        });
+
+        setTaskToDelete(null);
 
         await queryClient.invalidateQueries(
           trpc.task.list.queryFilter(),
         );
       },
       onError: (error) => {
-        setFeedback(`Erro ao excluir tarefa: ${error.message}`);
+        setToast({
+          message: `Erro ao excluir tarefa: ${error.message}`,
+          type: "error",
+        });
       },
     }),
   );
 
-  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
-
   function handleDelete() {
     if (taskToDelete === null) return;
 
-    setFeedback("");
-    deleteTask.mutate(
-      { id: taskToDelete },
-      {
-        onSuccess: () => {
-          setTaskToDelete(null);
-        },
-      },
-    );
+    deleteTask.mutate({ id: taskToDelete });
   }
 
   if (isLoading) {
@@ -84,16 +100,12 @@ export function TaskList() {
         </span>
       </div>
 
-      {feedback && (
-        <p
-          role="status"
-          className={`rounded-lg p-3 text-sm ${feedback.startsWith("Erro")
-              ? "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
-              : "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-            }`}
-        >
-          {feedback}
-        </p>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
 
       {!tasks || tasks.length === 0 ? (
@@ -117,6 +129,9 @@ export function TaskList() {
                 <TaskEditForm
                   task={task}
                   onCancel={() => setEditingTaskId(null)}
+                  onNotify={(message, type) => {
+                    setToast({ message, type });
+                  }}
                 />
               ) : (
                 <>
@@ -163,6 +178,7 @@ export function TaskList() {
           ))}
         </ul>
       )}
+
       {taskToDelete !== null && (
         <ConfirmDialog
           title="Excluir tarefa?"
