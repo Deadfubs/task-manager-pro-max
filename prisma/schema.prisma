@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descricao   String?
+  dataCriacao DateTime @default(now())
+}
